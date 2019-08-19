@@ -45,7 +45,7 @@ public class ImagesAdapter extends RecyclerView.Adapter<ImagesAdapter.ImagesView
 
         holder.imageView.setImageURI(null);
         holder.imageView.setImageURI(Uri.parse(images.get(position).getImageUri()));
-        holder.name.setText(String.valueOf(position));
+        holder.name.setText(images.get(position).getName());
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

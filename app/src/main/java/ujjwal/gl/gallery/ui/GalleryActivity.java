@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -24,7 +26,7 @@ import static ujjwal.gl.gallery.constants.Constants.PICKFILE_REQUEST_CODE;
 
 public class GalleryActivity extends AppCompatActivity implements View.OnClickListener {
 
-    ImageButton mOpenFile;
+    ImageButton mOpenFile, mHistory;
     RecyclerView mGrid;
     Database mDatabase;
     List<Images> mImages;
@@ -41,12 +43,14 @@ public class GalleryActivity extends AppCompatActivity implements View.OnClickLi
         initViews();
 
         mOpenFile.setOnClickListener(this);
+        mHistory.setOnClickListener(this);
 
         mGrid.setAdapter(mAdapter);
     }
 
     private void initViews() {
         mOpenFile = findViewById(R.id.open_file);
+        mHistory = findViewById(R.id.history);
         mGrid = findViewById(R.id.image_grid);
         mDatabase = Database.getInstance(getApplicationContext());
         mImages = new ArrayList<>();
@@ -63,6 +67,16 @@ public class GalleryActivity extends AppCompatActivity implements View.OnClickLi
             intent.setType("image/jpg");
             startActivityForResult(intent, PICKFILE_REQUEST_CODE);
         }
+        if(view == mHistory){
+            AlertDialog.Builder builder = new AlertDialog.Builder(GalleryActivity.this);
+
+            builder.setMessage(getData())
+                    .setTitle("History");
+
+            AlertDialog dialog = builder.create();
+
+            dialog.show();
+        }
     }
 
     @Override
@@ -71,7 +85,9 @@ public class GalleryActivity extends AppCompatActivity implements View.OnClickLi
         if(resultCode==RESULT_OK){
             Uri imageUri = data.getData();
 
-            Images image = new Images("image",imageUri.toString());
+            String filename = imageUri.toString().substring(imageUri.toString().lastIndexOf("/")+1);
+
+            Images image = new Images(filename,imageUri.toString());
 
             mImages.add(image);
             mDatabase.imagesDao().insertAll(image);
@@ -79,5 +95,14 @@ public class GalleryActivity extends AppCompatActivity implements View.OnClickLi
             Toast.makeText(getApplicationContext(),"Total "+String.valueOf(mImages.size()),Toast.LENGTH_LONG).show();
             mAdapter.notifyDataSetChanged();
         }
+    }
+
+    private String getData(){
+        List<Images> data = mDatabase.imagesDao().getAllData();
+        StringBuilder stringBuilder = new StringBuilder();
+        for(Images i : data){
+            stringBuilder.append(i.id).append(" : ").append(i.name).append("\n\n");
+        }
+        return stringBuilder.toString();
     }
 }
